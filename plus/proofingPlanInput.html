@@ -1,0 +1,276 @@
+<!DOCTYPE html>
+<html>
+
+	<head>
+		<meta charset="utf-8">
+		<meta name="viewport" content="width=device-width,initial-scale=1,minimum-scale=1,maximum-scale=1,user-scalable=no" />
+		<title>打样详情</title>
+		<link rel="stylesheet" href="../css/common.css" />
+		<link href="../css/mui.min.css" rel="stylesheet" />
+		<link href="../css/mui.picker.min.css" rel="stylesheet" />
+		<link href="../css/mui.poppicker.css" rel="stylesheet" />
+		<script src="../js/mui.min.js"></script>
+		<script src="../js/mui.picker.min.js"></script>
+		<script src="../js/mui.poppicker.js"></script>
+		<script src="../js/vue.js"></script>
+		<script src="../js/axios.js"></script>
+		<script src="../js/common.js"></script>
+		</script>
+	</head>
+
+	<body>
+		<div id="app">
+			<!-- 标题栏 -->
+			<header>
+				<div class="goback" onclick="goback()">
+					<span class="mui-icon mui-icon-arrowleft"></span>
+				</div>
+				<div class="title">
+					任务详情
+				</div>
+			</header>
+			<!-- 内容区域 -->
+			<div class="contain-wrapper">
+				<div class="proofingPlanInputPage">
+					<div class="proofingPlanStatus borderBottom">
+						<div>{{proofingPlanData.missionList.nodeName}}(<span style="font-size: 10px;color: red;line-height: 29px;"> 截止{{figureDate(proofingPlanData.missionList.technicalpatternrealdt)}} </span>)</div>
+						<div>{{figureStatus(proofingPlanData.missionList.technicalpatternrealdt, proofingPlanData.missionList.technicalpatterndt)}}</div>
+					</div>
+					<div class="contentWrapper">
+						<div class="titleContainer">
+							<span class="mui-icon mui-icon-bars"></span>
+							<span>板单：{{proofingPlanData.billNo}}</span>
+						</div>
+						<div class="contentContainer">
+							<div class="singeItem">款式：{{proofingPlanData.productName}}</div>
+							<div class="singeItem">要求板期：{{figureDate(proofingPlanData.deadLine)}}</div>
+							<div class="itemContainer">
+								<div class="item">面料：{{proofingPlanData.materialname}}</div>
+								<div class="item">款号：{{proofingPlanData.styleNo}}</div>
+							</div>
+							<div class="itemContainer">
+								<div class="item">波段：{{}}</div>
+								<div class="item">颜色：{{color}}</div>
+							</div>
+							<div class="itemContainer">
+								<div class="item">尺码：{{sizes}}</div>
+								<div class="item">数量：{{proofingPlanData.quantity}}</div>
+							</div>
+							<div class="singeItem">负责人：{{proofingPlanData.technicalpattern}}</div>
+						</div>
+						<div class="pickerWrapper">
+							<ul class="mui-table-view">
+								<li class="mui-table-view-cell" @click="changeDate">
+									<a class="mui-navigate-right"><span style="margin-left: 10px;">变更时间</span><span class="inputValue">{{changeDateText}}</span></a>
+								</li>
+								<li class="mui-table-view-cell" @click="changePeople">
+									<a class="mui-navigate-right"><span style="margin-left: 10px;">变更人员</span><span class="inputValue">{{chagnePeopleText}}</span></a>
+								</li>
+							</ul>
+						</div>
+						<div class="imgWrapper">
+							<div class="imgItem">
+								<img src="https://cn.vuejs.org/images/logo.png" />
+							</div>
+							<div class="imgItem">
+								<img src="https://cn.vuejs.org/images/logo.png" />
+							</div>
+						</div>
+					</div>
+					<div class="commentInputWrapper">
+						<textarea placeholder="添加评论" style="border: none;"></textarea>
+					</div>
+					<div class="imgUpLoadWrapper">
+						<div v-for="item, index in uploadImgList" :key="index" class="uploadImgItem">
+							<div class="closeBtn" @click="cancelImg(index)">
+								<span class="mui-icon mui-icon-closeempty" style="width: 24px;text-align: center;color: #fff;"></span>
+							</div>
+							<div class="uploadImgContainer">
+								<img v-bind:src="item" width="100%" height="100%" style="border-radius: 4px;"/>
+							</div>
+						</div>
+						<div class="imgInputContainer">
+							<div class="addBtn">
+								<span class="mui-icon mui-icon-plusempty"></span>
+							</div>
+							<input ref="imgInput" type="file" multiple accept="image/*" v-on:change="imgInputChange" class="imgInput"/>
+						</div>
+					</div>
+					<div class="submitWrapper">
+						<button type="button" id="submitBtn" class="mui-btn mui-btn-primary" @click="sumbit" data-loading-text="提交中">确 定</button>
+					</div>
+				</div>
+			</div>
+		</div>
+	</body>
+	<script>
+		var app = new Vue({
+			el: "#app",
+			data: {
+				nowDate: new Date(), // 当前时间
+				proofingPlanData: {}, // 打样详情数据
+				color: "", // 颜色
+				sizes: "", // 尺码
+				changeDateText: "请选择", // 变更时间
+				chagnePeopleText: "请选择", // 变更人员
+				employeeList: [], // 变更人员列表
+				uploadImgList: [], // 上传图片 src 列表
+				uploadImgFileList: [], // 上传图片 Data 列表
+			},
+			created: function() {
+
+				/**
+				 * H5 事件加载
+				 */
+				var that = this;
+				var domready, T;
+
+				function plusReady() {
+					if(!window.plus || !domready) {
+						return;
+					}
+					// 安卓机返回键
+					plus.key.addEventListener('backbutton', function() {
+						// todo 关闭程序
+						plus.webview.currentWebview().close("slide-out-left", null);
+					}, false);
+
+					// 获取打样详情数据
+					that.proofingPlanData = JSON.parse(plus.storage.getItem("proofingPlanDetail"));
+					var sizeList = [];
+					for(var i = 1; i < 10; i++) {
+						that.proofingPlanData["size" + i] ? sizeList.push(that.proofingPlanData["size" + i]) : null;
+
+					}
+					that.sizes = sizeList.join(";");
+
+					// 检测网络
+					if(!checkNet()) {
+						return;
+					}
+					// 获取颜色列表
+					axios.get(APIURL + "/proodingplan/getColorBySerialno", {
+						params: {
+							serialno: that.proofingPlanData.serialno
+						}
+					}).then(function(res) {
+						if(res.data.status == 0) {
+							that.color = res.data.data.join(";");
+						}
+					}).catch(function(err) {
+						console.log(JSON.stringify(err));
+						mui.alert(err.request.statusText, "服务器错误", "确定", null, 'div');
+					})
+					// 获取变更人员列表
+					axios.get(APIURL + "/proodingplan/getName").then(function(res) {
+						if(res.data.status == 0) {
+							that.employeeList = [];
+
+							var list = res.data.data;
+							for(var i = 0; i < list.length; i++) {
+								var obj = {};
+								obj["value"] = list[i].id;
+								obj["text"] = list[i].name;
+								that.employeeList.push(obj);
+							}
+						}
+					}).catch(function(err) {
+						console.log(JSON.stringify(err));
+						mui.alert(err.request.statusText, "服务器错误", "确定", null, 'div');
+					})
+
+					mui.init();
+				}
+				// plus初始化后，执行 plusReady
+				if(window.plus) {
+					plusReady();
+				} else {
+					document.addEventListener('plusready', plusReady, false);
+				}
+				// DOM树初始化后，执行 plusReady
+				document.addEventListener('DOMContentLoaded', function() {
+					domready = true;
+					plusReady();
+				}, false);
+
+			},
+			methods: {
+				// 计算日期
+				figureDate: function(timeStamp) {
+					var deadDate = new Date(timeStamp);
+					return deadDate.getFullYear() + "年" + (deadDate.getMonth() + 1) + "月" + deadDate.getDate() + "日";
+				},
+				// 计算打样状态
+				figureStatus: function(bdate, edate) {
+					var nowdate = this.nowDate.getTime();
+					if(nowdate < bdate) {
+						return "等待开始";
+					}
+					if(bdate <= nowdate && nowdate <= edate) {
+						return "等待开始";
+					}
+					if(edate < nowdate) {
+						return "等待完成";
+					}
+				},
+				// 变更时间事件
+				changeDate: function() {
+					var that = this;
+					var dtPicker = new mui.DtPicker({
+						"type": "date",
+					});
+					dtPicker.show(function(selectItems) {
+						that.changeDateText = selectItems.y.text + "-" + selectItems.m.text + "-" + selectItems.d.text;
+					})
+				},
+				// 变更人员
+				changePeople: function() {
+					var that = this;
+					var picker = new mui.PopPicker();
+
+					picker.setData(that.employeeList);
+					picker.show(function(selectItems) {
+						that.chagnePeopleText = selectItems[0].text;
+					})
+				},
+				// 上传图片有变更
+				imgInputChange: function() {
+
+					var that = this;
+					var reader = new FileReader();
+					reader.onloadstart = function(e) {
+						console.log("开始读取....");
+					}
+					reader.onprogress = function(e) {
+						console.log("正在读取中....");
+					}
+					reader.onabort = function(e) {
+						console.log("中断读取....");
+					}
+					reader.onerror = function(e) {
+						console.log("读取异常....");
+					}
+					reader.onload = function(e) {
+						console.log("成功读取....");
+						that.uploadImgList.push(e.currentTarget.result);
+					}
+					var imgList = this.$refs["imgInput"].files;
+					for(var i = 0; i < imgList.length; i++) {
+						reader.readAsDataURL(imgList[i]);
+						this.uploadImgFileList.push(imgList[i]);
+					}
+				},
+				// 提交数据
+				sumbit: function() {
+					
+				},
+				// 删除上传图片
+				cancelImg: function(index) {
+					this.uploadImgFileList.splice(index, 1);
+					this.uploadImgList.splice(index, 1);
+				}
+			}
+		});
+	</script>
+
+</html>

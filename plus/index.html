@@ -1,0 +1,727 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1,minimum-scale=1,maximum-scale=1,user-scalable=no" />
+    <title>主页</title>
+    <link rel="stylesheet" href="../css/common.css" />
+    <link href="../css/mui.min.css" rel="stylesheet" />
+    <script src="../js/mui.min.js"></script>
+    <script src="../js/vue.js"></script>
+    <script src="../js/bscroll.min.js"></script>
+    <script src="../js/axios.js"></script>
+    <script src="../js/common.js"></script>
+</head>
+
+<body>
+    <div id="app">
+        <!-- 标题栏 -->
+        <header>
+			<div class="goback" @click="cancelChat" v-show="isShowChatDetailPage">
+				<span class="mui-icon mui-icon-arrowleft"></span>
+			</div>
+			<div class="scanBtn" v-show="!isShowChatDetailPage" @click="goScan">
+				<span class="mui-icon mui-icon-camera"></span>
+			</div>
+            <div class="title">{{headerTitle}}</div>
+            <div class="searchBtn" v-show="!isShowChatDetailPage" @click="goSearch">
+            	<span class="mui-icon mui-icon-search"></span>
+            </div>
+        </header>
+        <!-- 内容区域 -->
+        <div class="contain-wrapper">
+            <!-- 待办模块 -->
+            <div class="toDoPage" v-show="isShowToDoPage">
+                <!-- 头部信息中心栏 -->
+                <div class="utilWrapper">
+                    <ul class="mui-table-view">
+                        <li class="mui-table-view-cell">
+                            <a class="mui-navigate-right"><span class="mui-icon mui-icon-email"></span><span style="margin-left: 10px;">消息中心</span><span class="mui-badge mui-badge-danger">45</span></a>
+                        </li>
+                        <li class="mui-table-view-cell">
+                            <a class="mui-navigate-right"><span class="mui-icon mui-icon-chatbubble"></span><span style="margin-left: 10px;">企业公告</span><span class="mui-badge mui-badge-danger">45</span></a>
+                        </li>
+                        <li class="mui-table-view-cell">
+                            <a class="mui-navigate-right"><span class="mui-icon mui-icon-chatboxes"></span><span style="margin-left: 10px;">预警信息</span><span class="mui-badge mui-badge-danger">45</span></a>
+                        </li>
+                    </ul>
+                </div>
+                <!-- 打样列表区域 -->
+                <!-- loading 图片 -->
+                <div v-show="proofingPlanPageDataList.length == 0" style="margin-top: 200px;text-align: center;">
+                    <img src="../img/loading.gif" width="50px" height="50px" />
+				</div>
+                <!-- 打样列表内容 -->
+                <div style="position: absolute;top: 190px;bottom: 0px;right: 0;left: 0;">
+                    <div v-show="proofingPlanPageDataList.length > 0" id="pullrefreshOfToDoPage" class="mui-content mui-scroll-wrapper missionWrapper" style="padding-bottom: 60px;">
+                        <div class="mui-scroll">
+                            <!--数据列表-->
+                            <ul class="mui-table-view mui-table-view-chevron">
+                                <li v-for="itemList,index in proofingPlanPageDataList" :key="index">
+                                    <div class="missionItem borderBottom" v-for="item, index2 in itemList.missionList" :key="index2" @tap="goProofingPlanInput(itemList,item)">
+                                        <!--页眉，放置标题-->
+                                        <div class="titleWrapper borderBottom">
+                                            <div class="left">{{itemList.billNo}}</div>
+                                            <div class="right">{{item.nodeName}}</div>
+                                        </div>
+                                        <div class="containWrapper">
+                                            <div class="imgContainer">
+                                                <img src="https://cn.vuejs.org/images/logo.png" />
+											</div>
+                                        	<div class="contentContainer">
+                                                <div class="txt">{{itemList.styleNo}}-{{itemList.productName}}</div>
+                                                    <div class="txt">周期：{{figureDayNum(item.technicalpatternrealdt - item.technicalpatterndt)}}天</div>
+                                                    <div class="txt">{{figureDeadDate(item.technicalpatternrealdt)}}截止</div>
+                                            </div>
+                                            <div class="utilContainer">
+                                                <div v-if="figureProofingPlanStatus(item.technicalpatterndt, item.technicalpatternrealdt) == 0" style="font-size: 12px;">等待开始</div>
+                                                <button class="mui-btn mui-btn-success" v-if="figureProofingPlanStatus(item.technicalpatterndt, item.technicalpatternrealdt) == 1">开始进行</button>
+                                                <button class="mui-btn mui-btn-danger" v-if="figureProofingPlanStatus(item.technicalpatterndt, item.technicalpatternrealdt) == 2">确认完成</button>
+                                            </div>
+                                        </div>
+                                	</div>
+                                </li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <!-- 聊天列表模块 -->
+            <div class="chatListPage" v-show="isShowChatListPage">
+                <ul class="mui-table-view">
+                    <li class="mui-table-view-cell mui-media" @click="goChat(userId)" v-for="userId,index in talkUserIdList" v-if="talkMessageObj[userId] != null" :key="index">
+                        <a href="javascript:;">
+      			    		<img class="mui-media-object mui-pull-left" src="../img/avatar.png">
+      			    		<div class="mui-media-body">
+      			    		    {{talkMessageObj[userId].nickName}}
+      			    		    <p class='mui-ellipsis' v-if="talkMessageObj[userId].messageList.length > 0">{{talkMessageObj[userId].messageList[talkMessageObj[userId].messageList.length - 1].content}}</p>
+      			    		</div>
+      					</a>
+      					<div class="msgNum" v-show="talkMessageObj[userId].unReadNum > 0">{{talkMessageObj[userId].unReadNum}}</div>
+      	 			</li>
+                </ul>
+            </div>
+            <!-- 聊天详情模块 -->
+            <transition name="fade">
+            	<div class="chatDetailPage" v-if="isShowChatDetailPage">
+            		<div class="chatContantWrapper" ref="chatContantWrapper">
+            			<ul ref="chatContantWrapperUl" style="padding-bottom: 200px">
+            				<!-- talkMessageObj[currentTalkingUserId].messageList -->
+            				<li v-for="item in messageListForShow" :class="{'left' : item.fromUserId != userMsg.id, 'right' : item.fromUserId == userMsg.id}">
+            					<div class="avatarContainer">
+            						<img src="../img/avatar.png" />
+            					</div>
+            					<div class="contentContainer">
+            						<span>{{item.content}}</span>
+            						<div class="triangle"></div>
+            					</div>
+            				</li>
+            			</ul>
+            		</div>
+            		<div class="chatInputWrapper">
+            			<div class="inputContainer">
+            				<input v-model="sendMessageContent" />
+            			</div>
+            			<button class="mui-btn mui-btn-primary" @click="sendMessage">
+            				发 送
+            			</button>
+            		</div>
+            	</div>
+        	</transition>
+            <!-- 任务模块  -->
+            <div class="missionPage" v-show="isShowMissionPage">
+                <div class="utilWrapper">
+                    <ul class="mui-table-view">
+                        <li class="mui-table-view-cell">
+                            <a class="mui-navigate-right"><span class="mui-icon mui-icon-list"></span><span style="margin-left: 10px;">我的已处理任务</span></a>
+                        </li>
+                        <li class="mui-table-view-cell">
+                            <a class="mui-navigate-right"><span class="mui-icon mui-icon-list"></span><span style="margin-left: 10px;">我分配的任务</span></a>
+                        </li>
+                        <li class="mui-table-view-cell">
+                            <a class="mui-navigate-right"><span class="mui-icon mui-icon-list"></span><span style="margin-left: 10px;">我参与的任务</span></a>
+                        </li>
+                    </ul>
+                </div>
+                <div>
+					所有任务：
+                </div>
+                <!-- 任务列表区域 -->
+                <!-- loading 图片 -->
+                <div v-show="proofingPlanPageDataList.length == 0" style="margin-top: 200px;text-align: center;">
+                    <img src="../img/loading.gif" width="50px" height="50px" />
+				</div>
+                <!-- 任务列表内容 -->
+                <div style="position: absolute;top: 190px;bottom: 0px;right: 0;left: 0;">
+                    <div v-show="proofingPlanPageDataList.length > 0" id="pullrefreshOfMissionPage" class="mui-content mui-scroll-wrapper missionWrapper" style="padding-bottom: 60px;">
+                        <div class="mui-scroll">
+                            <!--数据列表-->
+                            <ul class="mui-table-view mui-table-view-chevron">
+                                <li v-for="itemList,index in proofingPlanPageDataList" :key="index" @tap="goMissionDetail(itemList)">
+                                    <div class="missionItem borderBottom">
+                                        <!--页眉，放置标题-->
+                                        <div class="titleWrapper borderBottom">
+                                            <div class="left">{{itemList.type}}</div>
+                                            <div class="right">
+                                                <span>进行中</span>
+                                            </div>
+                                        </div>
+                                        <div class="containWrapper">
+                                            <div class="imgContainer">
+                                                <img src="https://cn.vuejs.org/images/logo.png" />
+											</div>
+                                        	<div class="contentContainer">
+                                            	<div class="txt">{{itemList.styleNo}}-{{itemList.productName}}</div>
+                                                <div class="txt"></div>
+                                            </div>
+                                        </div>
+                                        <div class="nodeWrapper">
+                                            <div class="nodeItem" v-for="item,index2 in itemList.missionList" :key="index2" :class="'nodeItem' + figureProofingPlanStatus(item.technicalpatterndt, item.technicalpatternrealdt)">
+                                                {{item.nodeName}}
+                                            </div>
+                                        </div>
+                                    </div>
+                                </li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <!-- 添加模块  -->
+            <div class="addPage" v-show="isShowAddPage">
+               	添加
+            </div>
+            <!-- 我模块  -->
+            <div class="minePage" v-show="isShowMinePage">
+                <div style="padding-top: 20px;">
+                    <ul class="mui-table-view">
+                        <li class="mui-table-view-cell">
+                            <a class="mui-navigate-right">
+								<div class="userMsgWrapper">
+									<div class="mui-icon mui-icon-contact userIcon"></div>
+									<div class="titleWrapper">
+										<div class="userName">{{userMsg.code}}</div>
+										<div class="workGroup">生产线车间一组</div>
+									</div>
+								</div>
+							</a>
+                        </li>
+                    </ul>
+                </div>
+                <div style="padding-top: 20px;">
+                    <ul class="mui-table-view">
+                        <li class="mui-table-view-cell">
+                            <a class="mui-navigate-right"><span class="mui-icon mui-icon-list"></span><span style="margin-left: 10px;">我的已处理任务</span></a>
+                        </li>
+                        <li class="mui-table-view-cell">
+                            <a class="mui-navigate-right"><span class="mui-icon mui-icon-list"></span><span style="margin-left: 10px;">我分配的任务</span></a>
+                        </li>
+                        <li class="mui-table-view-cell" @click="goImg">
+                            <a class="mui-navigate-right"><span class="mui-icon mui-icon-list"></span><span style="margin-left: 10px;">我参与的任务</span></a>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+            <!-- 底下导航栏 -->
+            <div class="navbar" v-show="!isShowChatDetailPage">
+                <ul>
+                    <li :class="{active : isShowToDoPage}" @click="clickNavBar('ToDoPage', '待办')">
+                        <div class="iconWrapper"><span class="mui-icon mui-icon-star"></span><span class="mui-badge mui-badge-danger">45</span></div>
+                        <div class="txt">待 办</div>
+                    </li>
+                    <li :class="{active : isShowChatListPage}" @click="clickNavBar('ChatListPage', '聊天列表')">
+                        <div class="iconWrapper"><span class="mui-icon mui-icon-chatbubble"></span><span class="mui-badge mui-badge-danger" v-show="figureUnReadChatCount != 0">{{figureUnReadChatCount}}</span></div>
+                        <div class="txt">聊 天</div>
+                    </li>
+                    <li :class="{active : isShowMissionPage}" @click="clickNavBar('MissionPage', '任务')">
+                        <div class="iconWrapper"><span class="mui-icon mui-icon-email"></span></div>
+                        <div class="txt">任 务</div>
+                    </li>
+                    <li :class="{active : isShowAddPage}" @click="clickNavBar('AddPage', '添加')">
+                        <div class="iconWrapper"><span class="mui-icon mui-icon-plus"></span></div>
+                        <div class="txt">添 加</div>
+                    </li>
+                    <li :class="{active : isShowMinePage}" @click="clickNavBar('MinePage', '我')">
+                        <div class="iconWrapper"><span class="mui-icon mui-icon-contact"></span></div>
+                        <div class="txt">我</div>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</body>
+<script>
+var webSocket;
+var app = new Vue({
+    el: "#app",
+    data: {
+        /* 路由页面参数 */
+        headerTitle: "待 办", // 页面标题
+        isShowToDoPage: true, // 是否显示待办页面
+        isShowMissionPage: false, // 是否显示任务页面
+        isShowAddPage: false, // 是否显示添加页面
+        isShowMinePage: false, // 是否显示我的页面
+        isShowChatListPage: false, // 是否显示聊天列表的页面
+        isShowChatDetailPage: false, // 是否显示聊天详情信息
+        /* 待办页面数据 */
+        proofingPlanPageIndex: 1, // 打样列表当前页面数
+        proofingPlanPageCount: 5, // 打样列表单次查询总页数
+        proofingPlanPageHasNextPage: true, // 打样列表是否拥有下一页
+        proofingPlanPageDataList: [], // 打样列表原始数据列表
+        nowDate: new Date(), // 当前时间
+		/* 聊天页面数据 */
+		myWebSocket: {}, // webSocket
+		talkUserIdList: [], // 聊天列表中通讯人员的 id 列表
+ 		// 聊天信息对象
+		talkMessageObj: {}, 
+		messageListForShow: [], // 用于显示的聊天列表
+		messageListCountForShow: 10, // 显示聊天列表信息的个数
+		currentTalkingUserId: "", // 当前聊天对象的信息
+		sendMessageContent: "", // 聊天发送的信息内容
+		chatPageScrollHook: "", // 聊天窗口滚动 Hook
+        /* 我的页面数据 */
+        userMsg: {}, // 当前用户信息
+    },
+    created: function() {
+
+        /**
+         * H5 事件加载
+         */
+        var that = this;
+        var domready, updataChatT, connectWebSocketT;
+
+        function plusReady() {
+            if (!window.plus || !domready) {
+                return;
+            }
+            // 安卓机返回键
+            plus.key.addEventListener('backbutton', function() {
+                // todo 关闭程序
+                var ws = plus.webview.currentWebview();
+                plus.webview.close(ws);
+            }, false);
+
+            // 获取用户信息
+            that.userMsg = JSON.parse(plus.storage.getItem("userMsg"));
+            that.talkMessageObj = JSON.parse(plus.storage.getItem("talkMessageObjStorage")) == null ? {} : JSON.parse(plus.storage.getItem("talkMessageObjStorage"));
+            that.talkUserIdList = JSON.parse(plus.storage.getItem("talkUserIdListStorage")) == null ? [] : JSON.parse(plus.storage.getItem("talkUserIdListStorage"));
+
+            // 检测网络
+            if (!checkNet()) {
+                return;
+            }
+            setInterval("checkNet()", 15000); // 每30秒检测一次网络
+
+            // 连接webSocket
+            var userId = that.userMsg.id;
+            console.log(that.userMsg.id);
+            // 连接
+            var connection = function() {
+        		console.log("connection...");
+       			var url = WEBSOCKETURL + "{" + userId + "}";
+       			console.log(url);
+        		webSocket = new WebSocket(url);
+        		webSocket.onopen = onopen;
+        		webSocket.onmessage = onmessage;
+        		webSocket.onclose = onclose;
+        		webSocket.onerror = onerror;
+        		that.myWebSocket = webSocket;
+    		}
+    		//重连
+    		var reconnection = function() {
+    		    //与服务器已经建立连接
+    		    if (webSocket && webSocket.readyState == 1) {
+    		        clearTimeout(connectWebSocketT);
+    		    } else {
+    		        //已经关闭了与服务器的连接
+    		        if (webSocket.readyState == 3) {
+    		            connection();
+    		        }
+    		        //0正尝试与服务器建立连接,2正在关闭与服务器的连接
+    		        connectWebSocketT = setTimeout(function() {
+    		            reconnection();
+    		        }, 1000);
+    		    }
+    		}
+    		var onopen = function() {
+    		    console.log("webSocket开始连接");
+    		}
+    		var onclose = function() {
+    		    console.log("webSocket关闭");
+    		    reconnection();
+    		}
+    		var onmessage = function(e) {
+        		console.log("webSocket接受到消息");
+        		if (e.data === "") return;
+        		clearTimeout(updataChatT);
+        		var messageObj = JSON.parse(e.data);
+
+        		// 更新视图
+        		var obj = {};
+        		obj.fromUserId = messageObj.fromUserId;
+        		obj.content = messageObj.content;
+        		obj.sendTime = messageObj.sendTime;
+
+        		// 更新聊天详情
+        		// 逻辑层中没有该用户聊天信息，联网获取用户数据
+        		if (that.talkMessageObj[messageObj.fromUserId] == null) {
+        			// todo 联网获取用户数据
+					that.$set(that.talkMessageObj, messageObj.fromUserId, {
+						nickName: "多多",
+						unReadNum: 0,
+						imgSrc: "https://cn.vuejs.org/images/logo.png",
+						messageList: []
+					});
+        		}
+        		// 更新逻辑层数据
+        		var updateObj = that.talkMessageObj[messageObj.fromUserId];
+        		updateObj.unReadNum += 1;
+        		updateObj.messageList.push(obj);
+        		that.$set(that.talkMessageObj, messageObj.fromUserId, updateObj);
+        		that.messageListForShow.push(obj);
+        		that.messageListCountForShow += 1;
+        		plus.storage.setItem("talkMessageObjStorage", JSON.stringify(that.talkMessageObj));
+
+        		// 更新聊天排序表
+        		var talkUserIdList = [];
+        		talkUserIdList.push(messageObj.fromUserId);
+        		that.talkUserIdList.forEach(function (item) {
+        			if (messageObj.fromUserId != item) {
+        				talkUserIdList.push(item);
+        			}
+        		});
+        		that.talkUserIdList = talkUserIdList;
+        		plus.storage.setItem("talkUserIdListStorage", JSON.stringify(that.talkUserIdList));
+
+        		// 视图自动滑动
+        		if (that.chatPageScrollHook != "") {
+        			updataChatT = setTimeout(function() {
+						that.$nextTick(function() {
+							var ulHeight = that.$refs.chatContantWrapperUl.offsetHeight;
+							var wrapperHeight = that.$refs.chatContantWrapper.offsetHeight;
+        					that.chatPageScrollHook.refresh();
+							if (ulHeight > wrapperHeight) {
+								that.chatPageScrollHook.scrollBy(0, (that.chatPageScrollHook.maxScrollY - that.chatPageScrollHook.y), 500);
+							}
+        				});
+        			}, 500);
+        		}
+    		}
+    		var onerror = function(e) {
+    		    console.log("webSocket错误");
+    		    reconnection();
+    		}
+        	connection();
+
+            /* 获取打样信息 */
+            axios.get(APIURL + "/proodingplan/getbypagenum", {
+                params: {
+                    pageindex: 1,
+                    pagesize: that.proofingPlanPageCount
+                }
+            }).then(function(res) {
+                that.proofingPlanPageDataList = res.data.data.list;
+                that.proofingPlanPageHasNextPage = res.data.data.hasNextPage;
+            }).catch(function(err) {
+                console.log(JSON.stringify(err))
+                mui.alert(err.request.statusText, "服务器错误", "确定", null, 'div');
+            });
+
+
+        	/*plus.storage.removeItem("talkUserIdListStorage");
+        	plus.storage.removeItem("talkMessageObjStorage");*/
+        }
+        // plus初始化后，执行 plusReady
+        if (window.plus) {
+            plusReady();
+        } else {
+            document.addEventListener('plusready', plusReady, false);
+        }
+        // DOM树初始化后，执行 plusReady
+        document.addEventListener('DOMContentLoaded', function() {
+            domready = true;
+            plusReady();
+        }, false);
+
+        /**
+         * mui 事件加载
+         */
+        that.$nextTick(function() {
+            mui.init();
+            mui("#pullrefreshOfToDoPage").pullRefresh({
+                up: {
+                    auto: false,
+                    contentrefresh: "正在加载...", //可选，正在加载状态时，上拉加载控件上显示的标题内容
+                    contentnomore: '没有更多数据了', //可选，请求完毕若没有更多数据时显示的提醒内容；
+                    callback: that.pullrefreshOfToDoPage
+                }
+            });
+            mui("#pullrefreshOfMissionPage").pullRefresh({
+                up: {
+                    auto: false,
+                    contentrefresh: "正在加载...", //可选，正在加载状态时，上拉加载控件上显示的标题内容
+                    contentnomore: '没有更多数据了', //可选，请求完毕若没有更多数据时显示的提醒内容；
+                    callback: that.pullrefreshOfMissionPage
+                }
+            });
+        });
+    },
+    methods: {
+        // 点击路由
+        clickNavBar: function(navName, title) {
+            this.isShowToDoPage = false;
+            this.isShowMissionPage = false;
+            this.isShowAddPage = false;
+            this.isShowMinePage = false;
+            this.isShowChatListPage = false;
+            this.isShowChatDetailPage = false;
+            this["isShow" + navName] = true;
+            this.headerTitle = title;
+        },
+        // 待办页面上拉事件
+        pullrefreshOfToDoPage: function() {
+            var that = this;
+            if (this.proofingPlanPageHasNextPage) {
+                this.proofingPlanPageIndex += 1;
+                axios.get(APIURL + "/proodingplan/getbypagenum", {
+                    params: {
+                        pageindex: this.proofingPlanPageIndex,
+                        pagesize: this.proofingPlanPageCount
+                    }
+                }).then(function(res) {
+                    mui('#pullrefreshOfToDoPage').pullRefresh().endPullupToRefresh(!res.data.data.hasNextPage);
+                    that.proofingPlanPageDataList = that.proofingPlanPageDataList.concat(res.data.data.list);
+                }).catch(function(err) {
+                    mui('#pullrefreshOfToDoPage').pullRefresh().endPullupToRefresh();
+                    mui.alert(err.request.statusText, "服务器错误", "确定", null, 'div');
+                })
+            } else {
+                mui('#pullrefreshOfToDoPage').pullRefresh().endPullupToRefresh(true);
+            }
+        },
+        // 任务页面上拉事件
+        pullrefreshOfMissionPage: function() {
+            var that = this;
+            if (this.proofingPlanPageHasNextPage) {
+                this.proofingPlanPageIndex += 1;
+                axios.get(APIURL + "/proodingplan/getbypagenum", {
+                    params: {
+                        pageindex: this.proofingPlanPageIndex,
+                        pagesize: this.proofingPlanPageCount
+                    }
+                }).then(function(res) {
+                    mui('#pullrefreshOfMissionPage').pullRefresh().endPullupToRefresh(!res.data.data.hasNextPage);
+                    that.proofingPlanPageDataList = that.proofingPlanPageDataList.concat(res.data.data.list);
+                }).catch(function(err) {
+                    mui('#pullrefreshOfMissionPage').pullRefresh().endPullupToRefresh();
+                    mui.alert(err.request.statusText, "服务器错误", "确定", null, 'div');
+                })
+            } else {
+                mui('#pullrefreshOfMissionPage').pullRefresh().endPullupToRefresh(true);
+            }
+        },
+        // 计算天数
+        figureDayNum: function(timestamp) {
+            return Math.ceil(timestamp / (24 * 60 * 60 * 1000));
+        },
+        // 计算打样信息当前状态，返回 0 表示等待开始，返回 1 表示开始进行，返回 2 表示确认完成
+        figureProofingPlanStatus: function(bdate, edate) {
+            var nowdate = this.nowDate.getTime();
+            if (nowdate < bdate) {
+                return 0;
+            }
+            if (bdate <= nowdate && nowdate <= edate) {
+                return 1;
+            }
+            if (edate < nowdate) {
+                return 2;
+            }
+        },
+        // 计算截止日期
+        figureDeadDate: function(timeStamp) {
+            var deadDate = new Date(timeStamp);
+            return deadDate.getFullYear() + "年" + (deadDate.getMonth() + 1) + "月" + deadDate.getDate() + "日";
+        },
+        // 点击进入打样详情页面
+        goProofingPlanInput: function(itemList, item) {
+            itemList.missionList = item;
+            plus.storage.setItem("proofingPlanDetail", JSON.stringify(itemList));
+            goWhere("./proofingPlanInput.html");
+        },
+        // 点击进入任务详情页面
+        goMissionDetail: function(itemList) {
+            plus.storage.setItem("missionDetail", JSON.stringify(itemList));
+            goWhere("./missionDetail.html");
+        },
+        // 退出聊天详情按钮
+        cancelChat: function() {
+        	this.isShowChatDetailPage = false;
+        	this.isShowChatListPage = true;
+        	this.headerTitle = "聊天列表";
+        	this.chatPageScrollHook.destroy();
+        	this.chatPageScrollHook = "";
+        	// 清空未读信息条数
+        	var obj = this.talkMessageObj[this.currentTalkingUserId];
+        	obj.unReadNum = 0;
+        	this.$set(this.talkMessageObj, this.currentTalkingUserId, obj);
+			plus.storage.setItem("talkMessageObjStorage", JSON.stringify(this.talkMessageObj));
+        },
+        // 点击进入聊天按钮
+        goChat: function(toUserId) {
+        	var that = this;
+        	this.currentTalkingUserId = toUserId;
+        	this.clickNavBar("ChatDetailPage", this.talkMessageObj[toUserId].nickName);
+        	// 清空未读信息条数
+        	var obj = this.talkMessageObj[this.currentTalkingUserId];
+        	obj.unReadNum = 0;
+        	this.$set(this.talkMessageObj, this.currentTalkingUserId, obj);
+			plus.storage.setItem("talkMessageObjStorage", JSON.stringify(this.talkMessageObj));
+
+			// 制作用于显示聊天信息列表数组
+			this.messageListCountForShow = 10; // 重置为 10
+			if (this.talkMessageObj[this.currentTalkingUserId].unReadNum > this.messageListCountForShow) {
+				this.messageListCountForShow = this.talkMessageObj[this.currentTalkingUserId].unReadNum;
+			}
+			var dataLength = this.talkMessageObj[this.currentTalkingUserId].messageList.length;
+			
+			// 初始化用于显示的聊天信息的数组
+			var messageListCountForShow;
+			if (dataLength > this.messageListCountForShow) {
+				messageListCountForShow = this.messageListCountForShow;
+				this.messageListForShow = this.talkMessageObj[this.currentTalkingUserId].messageList.slice((dataLength-messageListCountForShow), dataLength);
+			} else {
+				this.messageListCountForShow = dataLength;
+				this.messageListForShow = this.talkMessageObj[this.currentTalkingUserId].messageList;
+			}
+
+			// 初始化 better scroll
+        	this.$nextTick(function() {
+        		var startY = 0;
+				var ulHeight = that.$refs.chatContantWrapperUl.offsetHeight;
+				var wrapperHeight = that.$refs.chatContantWrapper.offsetHeight;
+				if (ulHeight > wrapperHeight) {
+					startY = wrapperHeight - ulHeight;
+				}
+				// 创建 Better Scroll 对象
+        		that.chatPageScrollHook = new BScroll(that.$refs.chatContantWrapper, {
+            		click: true,
+            		startY: startY,
+            		pullDownRefresh: {
+					  threshold: 50,
+					  stop: 20
+					}
+    			});
+    			// 绑定向下刷新事件
+        		that.chatPageScrollHook.on("pullingDown", function() {
+        			var dataLength = that.talkMessageObj[that.currentTalkingUserId].messageList.length;
+        			var messageListCountForShow = that.messageListCountForShow;
+
+        			// 已经到记录尽头
+        			if (messageListCountForShow >= dataLength) {
+        				that.chatPageScrollHook.finishPullDown();
+        				return;
+        			}
+        			// 默认多显示10条记录
+        			messageListCountForShow += 10;
+        			if (messageListCountForShow >= dataLength) {
+						that.messageListCountForShow = dataLength;
+						that.messageListForShow = that.talkMessageObj[that.currentTalkingUserId].messageList.slice();
+        			} else {
+						that.messageListCountForShow = messageListCountForShow;
+						that.messageListForShow = that.talkMessageObj[that.currentTalkingUserId].messageList.slice((dataLength-messageListCountForShow), dataLength);
+        			}
+        			// 告知better scroll 刷新事件完成了
+        			that.chatPageScrollHook.finishPullDown();
+        		});
+        	});
+        },
+        // 点击发送消息按钮
+        sendMessage: function() {
+        	var that = this;
+        	var sendMessageContent = that.sendMessageContent.trim();
+        	that.sendMessageContent = "";
+        	if (sendMessageContent.trim() == "") {
+        		return;
+        	}
+        	// 更新视图
+        	var saveObj = {};
+        	saveObj.sendTime = new Date().getTime();
+        	saveObj.content = sendMessageContent;
+        	saveObj.fromUserId = that.userMsg.id;
+
+        	// 更新聊天详情
+        	// 逻辑层中没有该用户聊天信息，联网获取用户数据
+        	if (that.talkMessageObj[that.currentTalkingUserId] == null) {
+        		// todo 联网获取用户数据
+				that.$set(that.talkMessageObj, that.currentTalkingUserId, {
+					nickName: "多多",
+					unReadNum: 0,
+					imgSrc: "https://cn.vuejs.org/images/logo.png",
+					messageList: [
+					]
+				});
+        	}
+
+        	// 更新逻辑层
+        	var updateObj = that.talkMessageObj[that.currentTalkingUserId];
+        	updateObj.messageList.push(saveObj);
+        	that.$set(that.talkMessageObj, that.currentTalkingUserId, updateObj);
+        	that.messageListForShow.push(saveObj);
+        	that.messageListCountForShow += 1;
+        	plus.storage.setItem("talkMessageObjStorage", JSON.stringify(that.talkMessageObj));
+
+        	// 更新聊天排序表
+        	var talkUserIdList = [];
+        	talkUserIdList.push(that.currentTalkingUserId);
+        	that.talkUserIdList.forEach(function (item) {
+        		if (that.currentTalkingUserId != item) {
+        			talkUserIdList.push(item);
+        		}
+        	});
+        	that.talkUserIdList = talkUserIdList;
+        	plus.storage.setItem("talkUserIdListStorage", JSON.stringify(that.talkUserIdList));
+
+        	// 视图自动滑动
+        	that.$nextTick(function() {
+				var ulHeight = that.$refs.chatContantWrapperUl.offsetHeight;
+				var wrapperHeight = that.$refs.chatContantWrapper.offsetHeight;
+        		that.chatPageScrollHook.refresh();
+				if (ulHeight > wrapperHeight) {
+					that.chatPageScrollHook.scrollBy(0, (that.chatPageScrollHook.maxScrollY - that.chatPageScrollHook.y), 500);
+				}
+        	});
+
+        	// webSocket 发送信息
+        	var sendMessageObj = {};
+        	sendMessageObj.toUserId = that.currentTalkingUserId.toString();
+        	sendMessageObj.fromUserId = that.userMsg.id.toString();
+        	sendMessageObj.content = sendMessageContent;
+        	that.myWebSocket.send(JSON.stringify(sendMessageObj));
+        },
+        // 去调用扫码接口页面
+        goScan: function() {
+        	goWhere("./scan.html");
+        },
+        // 去搜索页面
+        goSearch: function() {
+        	goWhere("./search.html")
+        },
+        goImg: function() {
+            goWhere("./talkTest.html");
+        }
+    },
+    computed: {
+        // 计算总的聊天未读条数
+        figureUnReadChatCount: function() {
+        	var count = 0;
+        	for (var key in this.talkMessageObj) {
+        		count += this.talkMessageObj[key].unReadNum;
+        	}
+        	return count;
+        },
+    }
+})
+</script>
+
+</html>

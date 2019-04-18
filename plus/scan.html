@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html>
+	<head>
+    	<meta charset="utf-8">
+    	<meta name="viewport" content="width=device-width,initial-scale=1,minimum-scale=1,maximum-scale=1,user-scalable=no" />
+    	<title>扫码</title>
+    	<link rel="stylesheet" href="../css/common.css" />
+    	<link href="../css/mui.min.css" rel="stylesheet" />
+    	<script src="../js/mui.min.js"></script>
+    	<script src="../js/vue.js"></script>
+    	<script src="../js/bscroll.min.js"></script>
+    	<script src="../js/axios.js"></script>
+    	<script src="../js/common.js"></script>
+	</head>
+	<body style="background-color: #000;">
+		<div id="app">
+			<header>
+				<div class="goback" @click="goBack">
+					<span class="mui-icon mui-icon-arrowleft"></span>
+				</div>
+            	<div class="title">扫 码</div>
+			</header>
+			<div class="scanPage">
+				<div id="bcid">
+					<div class="txt">载入中...</div>
+				</div>
+			</div>
+		</div>
+	</body>
+	<script>
+		var app = new Vue({
+			el: "#app",
+			data: {
+			},
+			created: function() {
+        		/**
+        		 * H5 事件加载
+        		 */
+        		var that = this;
+        		var domready, scanObj;
+
+				function plusReady() {
+            		if (!window.plus || !domready) {
+                		return;
+            		}
+
+            		// 安卓机返回键
+            		plus.key.addEventListener('backbutton', function() {
+            		    that.goBack();
+            		}, false);
+            		// 初始化 plus 扫码对象
+            		that.scanObj = new plus.barcode.Barcode('bcid');
+					that.scanObj.onmarked = that.onmarked;
+					that.scanObj.start();
+				}
+
+        		// plus初始化后，执行 plusReady
+        		if (window.plus) {
+        		    plusReady();
+        		} else {
+        		    document.addEventListener('plusready', plusReady, false);
+        		}
+        		// DOM树初始化后，执行 plusReady
+        		document.addEventListener('DOMContentLoaded', function() {
+        		    domready = true;
+        		    plusReady();
+        		}, false);
+
+			},
+			methods: {
+				// 返回键
+				goBack: function() {
+					this.scanObj.cancel(); // 停止
+					this.scanObj.close(); // 关闭
+					plus.webview.currentWebview().close("slide-out-left", null);
+				},
+				// 扫码回调事件
+				onmarked: function(type, code, file) {
+					this.scanObj.cancel();
+					alert(JSON.stringify(code));
+					this.scanObj.start();
+				}
+
+			}
+		})
+	</script>
+</html>

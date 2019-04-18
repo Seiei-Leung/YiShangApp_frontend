@@ -1,0 +1,23 @@
+{
+  "signin.html": {
+    "href": "signin.html",
+    "resources": [
+      "js/mui.min.js",
+      "css/mui.min.css"
+    ],
+    "refer": [
+      "plus/index.html"
+    ],
+    "priority": 0
+  },
+  "plus/index.html": {
+    "refer": [
+      "signin.html",
+      "plus/proofingPlanInput.html",
+      "plus/imgUpload.html",
+      "plus/missionDetail.html",
+      "plus/talkTest.html",
+      "plus/scan.html"
+    ]
+  }
+}

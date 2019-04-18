@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1,minimum-scale=1,maximum-scale=1,user-scalable=no" />
+    <title></title>
+    <script src="../js/vue.js"></script>
+    <script src="../js/axios.js"></script>
+</head>
+
+<body>
+    <div id="app">
+        <input width="50%" ref="imgInput" type="file" multiple accept="image/*" v-on:change="imgInputChange" />
+        <div v-for="item, index in imgSrcList" :key="index">
+            <img v-bind:src="item" height="100px" width="100px"/>
+			</div>
+            <div>
+                <button width="50%" @click="sumbit">上 传</button>
+            </div>
+        </div>
+</body>
+<script>
+var app = new Vue({
+    el: "#app",
+    data: {
+        imgFileList: [],
+        imgSrcList: [],
+    },
+    methods: {
+        imgInputChange: function() {
+            var that = this;
+            var reader = new FileReader();
+            reader.onloadstart = function(e) {
+                console.log("开始读取....");
+            }
+            reader.onprogress = function(e) {
+                console.log("正在读取中....");
+            }
+            reader.onabort = function(e) {
+                console.log("中断读取....");
+            }
+            reader.onerror = function(e) {
+                console.log("读取异常....");
+            }
+            reader.onload = function(e) {
+                console.log("成功读取....");
+                console.log(e)
+                that.imgSrcList.push(e.currentTarget.result);
+            }
+            var imgList = this.$refs["imgInput"].files;
+            console.log(this.$refs["imgInput"].files);
+            for (var i = 0; i < imgList.length; i++) {
+                reader.readAsDataURL(imgList[i]);
+                this.imgFileList.push(imgList[i]);
+            }
+            console.log(this.imgSrcList);
+        },
+        sumbit: function() {
+        	console.log(123)
+        	var that = this;
+            var formdata = new FormData();
+            for (var i = 0; i < that.imgFileList.length; i++) {
+                formdata.append("pictureFile", that.imgFileList[i]); // 这里的命名要与 java controller 中的 @RequestParam 一致
+            }
+            var xhr = new XMLHttpRequest();
+            xhr.onreadystatechange = function() {
+                if (xhr.readyState === 4) {
+                    if (xhr.status === 200) {
+                    	alert("success");
+                        console.log("success");
+                    } else {
+                    	alert("fail");
+                        console.log("fail");
+                    }
+                } else {
+                    // HTTP请求还在继续...
+                }
+            }
+
+            xhr.open("POST", "http://192.168.190.102:8080/file/upload2");
+            xhr.send(formdata);
+        }
+    }
+})
+</script>
+
+</html>

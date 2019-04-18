@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html>
+
+	<head>
+		<meta charset="utf-8">
+		<meta name="viewport" content="width=device-width,initial-scale=1,minimum-scale=1,maximum-scale=1,user-scalable=no" />
+		<title>打样详情</title>
+		<link rel="stylesheet" href="../css/common.css" />
+		<link href="../css/mui.min.css" rel="stylesheet" />
+		<script src="../js/mui.min.js"></script>
+		<script src="../js/vue.js"></script>
+		<script src="../js/axios.js"></script>
+		<script src="../js/common.js"></script>
+	</head>
+
+	<body>
+		<div id="app">
+			<!-- 标题栏 -->
+			<header>
+				<div class="goback" onclick="goback()">
+					<span class="mui-icon mui-icon-arrowleft"></span>
+				</div>
+				<div class="title">
+					板单详情
+				</div>
+			</header>
+
+			<!-- 内容区域 -->
+			<div class="contain-wrapper">
+				<div class="missionDetailPage">
+					<div class="missionStatus borderBottom">
+						<div>{{proofingPlanData.billNo}}</div>
+					</div>
+					<div class="contentWrapper">
+						<div class="titleContainer">
+							<span class="mui-icon mui-icon-bars"></span>
+							<span>板单：{{proofingPlanData.billNo}}</span>
+						</div>
+						<div class="contentContainer">
+							<div class="singeItem">款式：{{proofingPlanData.productName}}</div>
+							<div class="singeItem">要求板期：{{figureDate(proofingPlanData.deadLine)}}</div>
+							<div class="singeItem">客 户：{{proofingPlanData.custName}}</div>
+							<div class="itemContainer">
+								<div class="item">面料：{{proofingPlanData.materialname}}</div>
+								<div class="item">款号：{{proofingPlanData.styleNo}}</div>
+							</div>
+							<div class="itemContainer">
+								<div class="item">波段：{{}}</div>
+								<div class="item">数量：{{proofingPlanData.quantity}}</div>
+							</div>
+							<div class="singeItem">负责人：{{}}</div>
+						</div>
+					</div>
+					<div class="footStepWrapper">
+						<div class="footStepItem" v-for="item,index in proofingPlanData.missionList" :key="index">
+							<div class="circleDiv">
+								<div class="insideCircleDiv" :class="{red : figureProofingPlanStatus(item.technicalpatterndt, item.technicalpatternrealdt) == 2}"></div>
+							</div>
+							<div class="talkingBlock">
+								<div class="titleContainer">
+									{{item.nodeName}}
+								</div>
+								<div class="msgContainer" style="font-size: 12px;">
+									备注信息
+								</div>
+								<div class="dateContainer" style="font-size: 12px;">
+									{{figureDate(item.technicalpatternrealdt)}}
+								</div>
+								<div class="triangle"></div>
+							</div>
+						</div>
+						<div class="whiteLine">
+						</div>
+					</div>
+					<div class="slideWrapper">
+						<div style="padding-left: 10px;font-size: 14px;color: #666;">图片：</div>
+						<div class="mui-slider" ref="mui-slider">
+							<div class="mui-slider-group">
+								<!--第一个内容区容器-->
+								<div class="mui-slider-item">
+									<img src="https://cn.vuejs.org/images/logo.png" height="200px"/>
+								</div>
+								<!--第二个内容区-->
+								<div class="mui-slider-item">
+									<img src="https://cn.vuejs.org/images/logo.png" height="200px" />
+								</div>
+							</div>
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
+	</body>
+	<script>
+		var app = new Vue({
+			el: "#app",
+			data: {
+				nowDate: new Date(), // 当前时间
+				proofingPlanData: [], // 打样详情数据
+			},
+			created: function() {
+
+				/**
+				 * H5 事件加载
+				 */
+				var that = this;
+				var domready, T;
+
+				function plusReady() {
+					if(!window.plus || !domready) {
+						return;
+					}
+					// 安卓机返回键
+					plus.key.addEventListener('backbutton', function() {
+						// todo 关闭程序
+						plus.webview.currentWebview().close("slide-out-left", null);
+					}, false);
+
+					// 获取打样详情数据
+					that.proofingPlanData = JSON.parse(plus.storage.getItem("missionDetail"));
+					var sizeList = [];
+					for(var i = 1; i < 10; i++) {
+						that.proofingPlanData["size" + i] ? sizeList.push(that.proofingPlanData["size" + i]) : null;
+					}
+					that.sizes = sizeList.join(";");
+					mui.init();
+				}
+				// plus初始化后，执行 plusReady
+				if(window.plus) {
+					plusReady();
+				} else {
+					document.addEventListener('plusready', plusReady, false);
+				}
+				// DOM树初始化后，执行 plusReady
+				document.addEventListener('DOMContentLoaded', function() {
+					domready = true;
+					plusReady();
+				}, false);
+				that.$nextTick(function() {
+					that.$refs['mui-slider'].addEventListener('slide', function(event) {
+						//注意slideNumber是从0开始的；
+						console.log(event);
+					});
+				})
+			},
+			methods: {
+				// 计算日期
+				figureDate: function(timeStamp) {
+					var deadDate = new Date(timeStamp);
+					return deadDate.getFullYear() + "年" + (deadDate.getMonth() + 1) + "月" + deadDate.getDate() + "日";
+				},
+				// 计算打样信息当前状态，返回 0 表示等待开始，返回 1 表示开始进行，返回 2 表示确认完成
+				figureProofingPlanStatus: function(bdate, edate) {
+					var nowdate = this.nowDate.getTime();
+					if(nowdate < bdate) {
+						return 0;
+					}
+					if(bdate <= nowdate && nowdate <= edate) {
+						return 1;
+					}
+					if(edate < nowdate) {
+						return 2;
+					}
+				},
+			}
+		});
+	</script>
+
+</html>

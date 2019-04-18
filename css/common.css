@@ -1,0 +1,621 @@
+* {
+	margin: 0;
+	padding: 0;
+	color: #444;
+	font-family: "微软雅黑";
+	font-size: 16px;
+}
+
+a,
+img,
+button,
+input,
+textarea {
+	-webkit-tap-highlight-color: rgba(255, 255, 255, 0);
+	-webkit-appearance: none;
+}
+
+a {
+	text-decoration: none;
+}
+li {
+	list-style-type: none;
+}
+button {
+	border: none;
+	outline: none;
+}
+.borderBottom:after {
+	position: absolute;
+	left: 0;
+	right: 0;
+	bottom: 0;
+	height: 1px;
+	content: '';
+	-webkit-transform: scaleY(.5);
+	transform: scaleY(.5);
+	background-color: #c8c7cc;
+}
+.borderTop:before {
+	position: absolute;
+	left: 0;
+	right: 0;
+	top: 0;
+	height: 1px;
+	content: '';
+	-webkit-transform: scaleY(.5);
+	transform: scaleY(.5);
+	background-color: #c8c7cc;
+}
+.mui-navigate-right .inputValue {
+	position: absolute;
+	right: 40px;
+	color: #999;
+}
+
+
+header {
+	position: fixed;
+	top: 0;
+	left: 0;
+	width: 100%;
+	height: 44px;
+	font-size: 17px;
+	text-align: center;
+	line-height: 44px;
+	background-color: #555;
+	z-index: 100;
+}
+header .title {
+	color: #fff;
+}
+header .goback,
+header .scanBtn {
+	position: absolute;
+	width: 44px;
+	height: 44px;
+}
+header .searchBtn {
+	position: absolute;
+	top: 0px;
+	right: 0px;
+	width: 44px;
+	height: 44px;
+}
+header .mui-icon {
+	color: #fff;
+}
+.contain-wrapper {
+	margin-top: 44px;
+}
+.navbar {
+	position: fixed;
+	bottom: 0;
+	width: 100%;
+	z-index: 100;
+}
+.navbar ul {
+	display: flex;
+	display: -webkit-flex;
+	justify-content: space-around;
+	font-size: 0;
+	background-color: #fff;
+	border-top: 1px solid #DDDDDD;
+}
+.navbar li {
+	display: inline-block;
+	padding: 8px 0;
+	width: 25%;
+	font-size: 0px;
+	text-align: center;
+}
+.navbar li .iconWrapper {
+	position: relative;
+	margin-bottom: 4px;
+	font-size: 14px;
+	line-height: 1;
+}
+.navbar li .iconWrapper .mui-badge {
+	position: absolute;
+	left: 60%;
+	color: #fff!important;
+}
+.navbar li .txt {
+	font-size: 12px;
+	line-height: 1;
+}
+.navbar .active .iconWrapper span {
+	color: #20A0FF;
+}
+.navbar .active .txt {
+	color: #20A0FF;
+}
+.fade-enter-active {
+  transition: opacity .5s;
+}
+.fade-leave-active {
+  transition: opacity .1s;
+}
+.fade-enter, .fade-leave-to {
+  opacity: 0;
+}
+
+/* 首页、待办页面 */
+.toDoPage .utilWrapper,
+.missionPage .utilWrapper {
+	position: fixed;
+	top: 44px;
+	left: 0;
+	right: 0;
+	z-index: 1;
+}
+.toDoPage #pullrefreshOfToDoPage .mui-table-view,
+.missionPage #pullrefreshOfMissionPage .mui-table-view {
+	background-color: transparent;	
+}
+.toDoPage #pullrefreshOfToDoPage li,
+.missionPage #pullrefreshOfMissionPage li {
+	margin-bottom: 10px;
+}
+.toDoPage .missionWrapper .missionItem,
+.missionPage .missionWrapper .missionItem {
+	position: relative;
+	margin-bottom: 10px;
+	background-color: #fff;
+}
+.toDoPage .missionWrapper .missionItem .titleWrapper,
+.missionPage .missionWrapper .missionItem .titleWrapper {
+	position: relative;
+	box-sizing: border-box;
+	display: flex;
+	justify-content: space-between;
+	line-height: 1.8em;
+	padding: 0 18px;
+}
+.toDoPage .missionWrapper .missionItem .containWrapper,
+.missionPage .missionWrapper .missionItem .containWrapper {
+	padding: 8px;
+	width: 100%;
+	font-size: 0px;
+}
+.toDoPage .missionWrapper .missionItem .containWrapper .imgContainer,
+.missionPage .missionWrapper .missionItem .containWrapper .imgContainer {
+	display: inline-block;
+	vertical-align: top;
+	width: 25%;
+}
+.toDoPage .missionWrapper .missionItem .containWrapper .imgContainer img,
+.missionPage .missionWrapper .missionItem .containWrapper .imgContainer img {
+	display: block;
+	width: 100%;
+}
+.toDoPage .missionWrapper .missionItem .containWrapper .contentContainer,
+.missionPage .missionWrapper .missionItem .containWrapper .contentContainer {
+	box-sizing: border-box;
+	display: inline-block;
+	padding: 10px 0 0 10px;
+	width: 55%;
+	vertical-align: top;
+	font-size: 16px;
+	line-height: 1.2em;
+}
+.toDoPage .missionWrapper .missionItem .containWrapper .contentContainer .txt,
+.missionPage .missionWrapper .missionItem .containWrapper .contentContainer .txt {
+	width: 100%;
+	height: 1.2em;
+	white-space: nowrap;
+	overflow: hidden;
+	text-overflow: ellipsis;
+}
+.toDoPage .missionWrapper .missionItem .containWrapper .utilContainer {
+	padding-bottom: 10px;
+	display: inline-block;
+	vertical-align: bottom;
+	width: 20%;
+}
+.toDoPage .missionWrapper .missionItem .containWrapper .utilContainer .mui-btn {
+	padding: 5px 0;
+	width: 100%;
+	font-size: 12px;
+}
+
+/* 任务页面 */
+.missionPage .utilWrapper {
+
+}
+.missionPage .missionWrapper .nodeWrapper {
+	display: flex;
+	justify-content: flex-start;
+	flex-wrap: wrap;
+}
+.missionPage .missionWrapper .nodeWrapper .nodeItem {
+	flex-shrink: 0;
+	margin: 0 0 10px 10px;
+	padding: 0 10px;
+	font-size: 14px;
+	line-height: 1.8em;
+	background-color: #ddd;
+	color: #fff;
+}
+.missionPage .missionWrapper .nodeWrapper .nodeItem1 {
+	background-color: #42b983;
+}
+.missionPage .missionWrapper .nodeWrapper .nodeItem2 {
+	background-color: #dd524d;
+}
+/* 任务详情页面 */
+.missionDetailPage .footStepWrapper {
+	margin-top: 10px;
+	position: relative;
+}
+.missionDetailPage .footStepWrapper .footStepItem {
+	margin-bottom: 20px;
+	font-size: 0px;
+}
+.missionDetailPage .footStepWrapper .footStepItem .circleDiv {
+	display: inline-block;
+	vertical-align: top;
+	box-sizing: border-box;
+	margin: 5px 10px 0 10px;
+	padding: 3px 0 0 3px;
+	width: 20px;
+	height: 20px;
+	border-radius: 50%;
+	background-color: #fff;
+	box-shadow: 0px 3px 2px 0px rgba(0,0,0,0.1);
+}
+.missionDetailPage .footStepWrapper .footStepItem .circleDiv .insideCircleDiv {
+	width: 14px;
+	height: 14px;
+	border-radius: 50%;
+	background-color: #42b983;
+}
+.missionDetailPage .footStepWrapper .footStepItem .circleDiv .red {
+	background-color: #dd524d;
+}
+.missionDetailPage .footStepWrapper .footStepItem .talkingBlock {
+	display: inline-block;
+	vertical-align: top;
+	position: relative;
+	box-sizing: border-box;
+	padding: 4px;
+	width: 80%;
+	border-radius: 4px;
+	background-color: #fff;
+	border-top: 1px solid #42b983;
+	border-bottom: 1px solid #ccc;
+}
+.missionDetailPage .footStepWrapper .footStepItem .talkingBlock .titleContainer {
+	font-size: 12px;
+}
+.missionDetailPage .footStepWrapper .footStepItem .talkingBlock .triangle {
+	position: absolute;
+	top: 10px;
+	left: -10px;
+	width: 0px;
+	height: 0px;
+	border-right: 5px solid #fff;
+	border-top: 5px solid transparent;
+	border-bottom: 5px solid transparent;
+	border-left: 5px solid transparent;
+}
+.missionDetailPage .footStepWrapper .whiteLine {
+	position: absolute;
+	top: 0;
+	bottom: 0;
+	left: 18px;
+	width: 5px;
+	background-color: #fff;
+	z-index: -1;
+}
+
+
+
+
+
+/* 用户信息页面 */
+.minePage .userMsgWrapper .userIcon {
+	display: inline-block;
+	line-height: 64px;
+	vertical-align: top;
+	color: #20A0FF;
+}
+.minePage .userMsgWrapper .titleWrapper {
+	display: inline-block;
+	margin-left: 10px;
+	line-height: 1.8em;
+	font-size: 18px;
+	vertical-align: top;
+}
+.minePage .userMsgWrapper .titleWrapper .workGroup {
+	font-size: 16px;
+	color: #666;
+}
+
+/* 打样输入页面 */
+.proofingPlanInputPage,
+.missionDetailPage {
+	position: relative;
+}
+.proofingPlanInputPage .proofingPlanStatus,
+.missionDetailPage .missionStatus {
+	position: relative;
+	display: flex;
+	justify-content: space-between;
+	padding: 0 10px;
+	height: 35px;
+	line-height: 35px;
+	font-size: 14px;
+	background-color: #fff;
+}
+.proofingPlanInputPage .contentWrapper,
+.missionDetailPage .contentWrapper {
+	margin-top: 20px;
+	background-color: #fff;
+}
+.proofingPlanInputPage .contentWrapper .titleContainer,
+.missionDetailPage .contentWrapper .titleContainer {
+	padding: 0 10px;
+	height: 35px;
+	line-height: 35px;
+	border-top: 1px solid #ddd;
+	border-bottom: 1px solid #ddd;
+}
+.proofingPlanInputPage .contentWrapper .titleContainer .mui-icon,
+.missionDetailPage .contentWrapper .titleContainer .mui-icon {
+	font-size: 14px;
+	color: #999;
+}
+.proofingPlanInputPage .contentWrapper .contentContainer,
+.missionDetailPage .contentWrapper .contentContainer {
+	padding: 10px;
+	line-height: 25px;
+	font-size: 12px;
+}
+.proofingPlanInputPage .contentWrapper .contentContainer .singeItem,
+.missionDetailPage .contentWrapper .contentContainer .singeItem {
+	font-size: 12px;
+}
+.proofingPlanInputPage .contentWrapper .contentContainer .itemContainer,
+.missionDetailPage .contentWrapper .contentContainer .itemContainer {
+	display: flex;
+	justify-content: space-between;
+}
+.proofingPlanInputPage .contentWrapper .contentContainer .itemContainer .item,
+.missionDetailPage .contentWrapper .contentContainer .itemContainer .item {
+	width: 45%;
+	font-size: 12px;
+}
+.proofingPlanInputPage .imgWrapper {
+	padding: 10px;
+	display: flex;
+	justify-content: space-between;
+	flex-wrap: wrap;
+	font-size: 0px;
+}
+.proofingPlanInputPage .imgWrapper .imgItem {
+	width: 45%;
+}
+.proofingPlanInputPage .imgWrapper img {
+	display: block;
+	width: 100%;
+}
+.proofingPlanInputPage .commentInputWrapper {
+	margin-top: 10px;
+	padding: 5px 0;
+	border-top: 1px solid #ddd;
+	border-bottom: 1px solid #ddd;
+	background-color: #fff;
+}
+.proofingPlanInputPage .imgUpLoadWrapper {
+	display: flex;
+	justify-content: space-around;
+	flex-wrap: wrap;
+	padding-top: 10px;
+	background-color: #fff;
+	
+}
+.proofingPlanInputPage .imgUpLoadWrapper .uploadImgItem {
+	position: relative;
+	padding-top: 22%;
+	margin-bottom: 10px;
+	width: 22%;
+	flex-shrink: 0;
+	border-radius: 4px;
+	
+}
+.proofingPlanInputPage .imgUpLoadWrapper .uploadImgItem .uploadImgContainer {
+	position: absolute;
+	right: 0;
+	left: 0;
+	top: 0;
+	bottom: 0;
+	border-radius: 4px;
+}
+.proofingPlanInputPage .imgUpLoadWrapper .uploadImgItem .closeBtn {
+	position: absolute;
+	right: 2px;
+	top: 2px;
+	box-sizing: border-box;
+	width: 24px;
+	height: 24px;
+	line-height: 24px;
+	border-radius: 50%;
+	background-color: rgba(255,255,255,0.5);
+	z-index: 100;
+} 
+.proofingPlanInputPage .imgUpLoadWrapper .imgInputContainer {
+	position: relative;
+	padding-top: 22%;
+	margin-bottom: 10px;
+	width: 22%;
+	flex-shrink: 0;
+	border-radius: 4px;
+	border: 1px solid #ddd;
+}
+.proofingPlanInputPage .imgUpLoadWrapper .imgInputContainer .addBtn {
+	position: absolute;
+	top: 35%;
+	width: 100%;
+	text-align: center;
+	font-size: 12px;
+	color: #ddd;
+}
+.proofingPlanInputPage .imgUpLoadWrapper .imgInputContainer .imgInput {
+	position: absolute;
+	top: 0;
+	bottom: 0;
+	width: 100%;
+	opacity: 0;
+}
+.proofingPlanInputPage .submitWrapper {
+	padding: 10px 0;
+	width: 100%;
+	background-color: #fff;
+	border-top: 1px solid #ddd;
+}
+.proofingPlanInputPage .submitWrapper #submitBtn {
+	display: block;
+	margin: auto;
+	width: 80%;
+	
+}
+/* 聊天列表页面 */
+.chatListPage .mui-table-view .mui-table-view-cell .msgNum {
+	position: absolute;
+	top: 4px;
+	left: 40px;
+	padding: 3px 6px;
+	border-radius: 100px;
+	background-color: #dd524d;
+	color: #fff;
+	font-size: 12px;
+	line-height: 1;
+}
+/* 聊天详细页面 */
+.chatDetailPage .chatContantWrapper {
+	/*padding-bottom: 70px;*/
+	position: absolute;
+	top: 44px;
+	right: 0;
+	left: 0;
+	bottom: 50px;
+	overflow: hidden;
+}
+.chatDetailPage li{
+	position: relative;
+	display: flex;
+	padding: 10px;
+	font-size: 0px;
+}
+.chatDetailPage .right {
+	flex-direction: row-reverse;
+}
+.chatDetailPage .avatarContainer {
+	width: 50px;
+	height: 50px;
+}
+.chatDetailPage .right .avatarContainer {
+}
+.chatDetailPage .avatarContainer img {
+	width: 100%;
+	height: 100%;
+	border-radius: 4px;
+}
+.chatDetailPage .contentContainer {
+	position: relative;
+	flex-shrink: 0;
+	line-height: 1.5em;
+	font-size: 16px;
+}
+.chatDetailPage .contentContainer span {
+	display: inline-block;
+	box-sizing: border-box;
+	padding: 2px 10px;
+	max-width: 200px;
+	word-wrap: break-word;
+	white-space: pre-wrap;
+	border-radius: 4px;
+	background-color: #fff;
+} 
+.chatDetailPage .right .contentContainer span {
+	background-color: #89cdff;
+}
+.chatDetailPage .left .contentContainer {
+	margin-left: 10px;
+}
+.chatDetailPage .right .contentContainer {
+	margin-right: 10px;
+}
+.chatDetailPage .left .contentContainer .triangle {
+	position: absolute;
+	top: 5px;
+	left: -10px;
+	border-right: 5px solid #fff;
+	border-top: 5px solid transparent;
+	border-bottom: 5px solid transparent;
+	border-left: 5px solid transparent;
+}
+.chatDetailPage .right .contentContainer .triangle {
+	position: absolute;
+	top: 5px;
+	right: -10px;
+	border-right: 5px solid transparent;
+	border-top: 5px solid transparent;
+	border-bottom: 5px solid transparent;
+	border-left: 5px solid #89cdff;
+}
+.chatDetailPage .chatInputWrapper {
+	position: fixed;
+	bottom: 0;
+	left: 0;
+	right: 0;
+	padding: 10px;
+	background-color: #ddd;
+	font-size: 0;
+}
+.chatDetailPage .chatInputWrapper .inputContainer {
+	display: inline-block;
+	width: 75%;
+	vertical-align: top;
+}
+.chatDetailPage .chatInputWrapper input {
+	box-sizing: border-box;
+	padding: 0;
+	padding-left: 10px;
+	height: 30px;
+	width: 100%;
+	line-height: 30px;
+	border: none;
+	border-radius: 4px;
+	font-size: 16px;
+}
+.chatDetailPage .chatInputWrapper .mui-btn {
+	display: inline-block;
+	height: 30px;
+	width: 20%;
+	margin-left: 5%;
+	vertical-align: top;
+}
+/* 扫码 */
+.scanPage #bcid {
+	width: 100%;
+	position: absolute;
+	top: 44px;
+	bottom: 0px;
+	text-align: center;
+}
+.scanPage #bcid .txt{
+	margin-top: 40%;
+	color: #fff;
+}
+/* 搜索页面 */
+.searchPage .searchInputWrapper {
+	box-sizing: border-box;
+	width: 100%;
+	padding: 10px;
+	background-color: #ddd;
+}
+.searchPage .mui-input-row.mui-search.mui-active::before {
+	line-height: 34px;
+}
